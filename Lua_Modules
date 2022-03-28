@@ -1,0 +1,194 @@
+tfm.exec.setRoomMaxPlayers('30')
+mapBase = '<C><P F="0" H="3000" MEDATA=";;;;-0;0:::1-"/><Z><S/><D><F X="71" Y="227"/><F X="238" Y="55"/><F X="420" Y="116"/><F X="678" Y="140"/><DS X="400" Y="2950"/></D><O/><L/></Z></C>', '<C><P F="1" H="3000" MEDATA=";;;;-0;0:::1-"/><Z><S/><D><F X="71" Y="227"/><F X="238" Y="55"/><F X="420" Y="116"/><F X="678" Y="140"/><DS X="400" Y="2950"/></D><O/><L/></Z></C>'
+
+ratos = 0
+ratosvivos = ratos
+time = 0
+timeb = 0
+timec = 0
+pisos = {
+ [1] = {type = 0, friction=0.3, restitution=0.2, mc = true},
+ [2] = {type = 1, friction=0, restitution=0.2, mc = true},
+ [3] = {type = 2, friction=0, restitution=0.5, mc = true},
+ [4] = {type = 4, friction=20, restitution=0.2, mc = true},
+ [5] = {type = 5, friction=0.2, restitution=0.2, mc = true},
+ [6] = {type = 6, friction=0.2, restitution=0.2, mc = true},
+ [7] = {type = 9, friction=0, restitution=0, mc = false},
+ [8] = {type = 10, friction=0.3, restitution=0, mc = true}
+}
+
+lang = {
+	br = {
+		WELCOME = "<VP>    Você consegue sair do vulcão de acido ate que ele suba? este e o seu objetivo aqui!<BR><BR><R>Ideia: <CE>Hallonin#0000<BR><VP>Progamador: <CE>Sklag#2552<BR><VP>Tradução em português(Brasil): <CE>Sklag#2552"
+	},
+	en = {
+    WELCOME = "<VP>    Can you get out of your acid goal all the way up? this is here!<BR><BR><R>Idea: <CE>Hallonin<BR><VP>Programmer: <VP> <CE>Sklag#2552<BR><VP>English translation: <CE>Sklag#2552"
+	},
+	es = {
+		WELCOME = "¿Podrás conseguir escapar del volcán de ácido antes de que este suba? ¡Esta es tu meta aquí!<BR><BR><R>Idea: <CE>Hallonin<BR><VP>Progamador: <V>Sklag#2552<BR><VP>Traducción al español: <CE>Indexinel#5948",
+	},
+}
+
+translate = function(jogador, chave)
+
+	-- capturar a sigla da comunidade do jogador
+	local comunidade = "en" -- um valor padrão por via das dúvidas
+	if tfm.get.room.playerList[jogador] then
+		comunidade = tfm.get.room.playerList[jogador].community
+	end
+
+	-- se a comunidade do jogador tiver tradução, então...
+	if lang[comunidade] then
+
+		-- se o idioma tiver um texto relacionado com a chave, então...
+		if lang[comunidade][chave] then
+			return lang[comunidade][chave]
+		else
+			return "ERROR"
+		end
+	else
+
+		-- aqui definimos um idioma padrão, que será o en
+		if lang.en[chave] then
+			return lang.en[chave]
+		else
+			return "ERROR"
+		end
+	end
+end
+
+local
+genSeed = function()
+ local id = 2
+ y = 100
+ for i = 1,150 do
+ y = y +20
+ block = math.random(#pisos)
+
+	 tfm.exec.addPhysicObject(i, math.random(75, 665), y, {
+		type = pisos[block].type,
+		color = 0xf,
+		width = math.random(50, 125),
+		height = math.random(10, 30),
+    angle = math.random(-10, 10),
+		friction = pisos[block].friction,
+		restitution = pisos[block].restitution,
+		miceCollision = pisos[block].mc,
+		groundCollision = false
+ })
+
+ end 
+end
+
+local 
+ eventPlayerGetCheese = function(name)
+
+ tfm.exec.playerVictory(name)
+end
+
+local
+ eventNewPlayer = function(name)
+  
+   ui.setMapName('<G>|</G> <VP>Acid <R>Volcano\t\t\t\t\t\t\t\t\t\t\t\t\t\t\t\t\t\t\t\t\t\t\t\t\t\t\t\t\t\t\t\t\t\t\t\t\t\t\t\t\t\t\t\t\t\t\t\t\t\t')
+   tfm.exec.chatMessage(translate(name, "WELCOME"), name)
+   ratos = ratos +1
+
+   if timec < 15 then
+    tfm.exec.respawnPlayer(name)
+
+ end
+end
+
+local
+ eventNewGame = function()
+
+  ratosvivos = ratos
+  tfm.exec.disableAutoShaman(true)
+  tfm.exec.disableAutoNewGame(true)
+  tfm.exec.disableWatchCommand(true)
+  tfm.exec.disablePhysicalConsumables(true)
+  tfm.exec.disableMortCommand(true)
+  tfm.exec.disableDebugCommand(true)
+  tfm.exec.disableAutoScore(true)
+  tfm.exec.disableAfkDeath(true)
+  tfm.exec.newGame(mapBase)
+  tfm.exec.setGameTime('180')
+  time = 0
+  timeb = 0
+  timec = 0
+  yy = 3000 
+  t = 10
+  tfm.exec.setWorldGravity(0, 5)
+  genSeed()
+	
+  tfm.exec.addPhysicObject(1, 400, 3000, {
+		type = 6,
+		color = 0xf,
+		width = 800,
+		height = 50,
+		friction = .3,
+		restitution = .2,
+		miceCollision = true,
+		groundCollision = false
+ })
+end
+
+eventPlayerDied = function(name)
+ ratosvivos = ratosvivos -1
+end
+
+eventNewGame()
+
+eventLoop = function()
+
+   if ratosvivos == 0 then
+
+   eventNewGame()
+
+   end
+
+ time = time + 0.5
+ timeb = timeb + 0.5
+ timec = timec +0.5
+ print(timeb)
+ if time == 5 then
+ time = 0
+ tfm.exec.addShamanObject(90, math.random(0, 800), math.random(0, 50))
+ tfm.exec.addShamanObject(10, math.random(0, 800), math.random(0, 50))
+ tfm.exec.addShamanObject(90, math.random(0, 800), math.random(0, 50))
+ tfm.exec.addShamanObject(85, math.random(0, 800), math.random(0, 50))
+ tfm.exec.addShamanObject(90, math.random(0, 800), math.random(0, 50))
+ tfm.exec.addShamanObject(10, math.random(0, 800), math.random(0, 50))
+ tfm.exec.addShamanObject(90, math.random(0, 800), math.random(0, 50))
+ tfm.exec.addShamanObject(85, math.random(0, 800), math.random(0, 50))
+
+ tfm.exec.addShamanObject(90, math.random(0, 800), math.random(0, 50))
+ tfm.exec.addShamanObject(10, math.random(0, 800), math.random(0, 50))
+ tfm.exec.addShamanObject(90, math.random(0, 800), math.random(0, 50))
+ tfm.exec.addShamanObject(85, math.random(0, 800), math.random(0, 50))
+ 
+ elseif timeb > 14 then
+   genSeed()
+   timeb = 0 
+ 
+ elseif timec > 10 then
+
+    yy = yy -7
+    t = t +17
+ 	tfm.exec.addPhysicObject(-1, 400, yy, {
+		type = 19,
+		color = 0xf,
+		width = 800,
+		height = t,
+		friction = .3,
+		restitution = .2,
+		miceCollision = true,
+		groundCollision = false
+ })
+
+ end
+end
+
+for all in pairs(tfm.get.room.playerList) do
+ eventNewPlayer(all)
+end
